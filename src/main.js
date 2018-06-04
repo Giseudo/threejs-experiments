@@ -7,7 +7,10 @@ import {
 	Mesh,
 	ShaderMaterial,
 	PlaneBufferGeometry,
+	MeshPhongMaterial,
+	SphereGeometry,
 	AmbientLight,
+	DirectionalLight,
 	TextureLoader,
 	MirroredRepeatWrapping
 } from 'three'
@@ -55,6 +58,19 @@ const app = {
 		this.uniforms.texture.value.wrapS = MirroredRepeatWrapping
 		this.uniforms.texture.value.wrapT = MirroredRepeatWrapping
 		this.uniforms.texture.value.repeat.set(5, 5)
+
+		var ambientLight = new AmbientLight(0xffff00, .2)
+		var geometrySphere = new SphereGeometry(3, 32, 32)
+		var materialSphere = new MeshPhongMaterial({ color: 0x0ffff0, shininess: 300 })
+
+		this.light = new DirectionalLight(0x00ffff, 1)
+		this.light.position.x = 30
+		this.light.position.z = 20
+
+		this.sphere = new Mesh(geometrySphere, materialSphere)
+		this.scene.add(this.light)
+		this.scene.add(this.sphere)
+		this.scene.add(ambientLight)
 
 		// Camera
 		this.camera.position.z = 5
