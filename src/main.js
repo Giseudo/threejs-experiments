@@ -12,7 +12,8 @@ import {
 	AmbientLight,
 	DirectionalLight,
 	TextureLoader,
-	MirroredRepeatWrapping
+	MirroredRepeatWrapping,
+	RepeatWrapping
 } from 'three'
 
 const app = {
@@ -57,17 +58,26 @@ const app = {
 
 		this.uniforms.texture.value.wrapS = MirroredRepeatWrapping
 		this.uniforms.texture.value.wrapT = MirroredRepeatWrapping
-		this.uniforms.texture.value.repeat.set(5, 5)
+		this.uniforms.ripples.value.wrapS = RepeatWrapping
+		this.uniforms.ripples.value.wrapT = RepeatWrapping
+		this.uniforms.bump.value.repeat.set(500, 500)
 
-		var ambientLight = new AmbientLight(0xffff00, .2)
-		var geometrySphere = new SphereGeometry(3, 32, 32)
-		var materialSphere = new MeshPhongMaterial({ color: 0x0ffff0, shininess: 300 })
+		var ambientLight = new AmbientLight(0xffffff, .1)
+		var geometrySphere = new SphereGeometry(8, 9, 9)
+		var materialSphere = new MeshPhongMaterial({
+			color: 0xffffff,
+			normalMap: this.uniforms.bump.value,
+			specularMap: this.uniforms.texture.value,
+			specular: 0xffff00,
+			shininess: 20
+		})
 
-		this.light = new DirectionalLight(0x00ffff, 1)
-		this.light.position.x = 30
-		this.light.position.z = 20
+		this.light = new DirectionalLight(0xffffff, .8)
+		this.light.position.x = 50
+		this.light.position.z = 100
 
 		this.sphere = new Mesh(geometrySphere, materialSphere)
+		this.sphere.position.z = -4
 		this.scene.add(this.light)
 		this.scene.add(this.sphere)
 		this.scene.add(ambientLight)
@@ -88,6 +98,14 @@ const app = {
 		texture: {
 			type: 't',
 			value: new TextureLoader().load('./textures/ToonWater01.png')
+		},
+		bump: {
+			type: 't',
+			value: new TextureLoader().load('./textures/PaperNormal01.jpg')
+		},
+		ripples: {
+			type: 't',
+			value: new TextureLoader().load('./textures/RipplesNormal01.jpg')
 		},
 		delta: {
 			type: 'f',
