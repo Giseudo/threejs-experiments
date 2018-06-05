@@ -82,6 +82,9 @@ const app = {
 		this.scene.add(this.sphere)
 		this.scene.add(ambientLight)
 
+		// Change background
+		this.renderer.setClearColor(0xf9f7ec, 1);
+
 		// Camera
 		this.camera.position.z = 5
 		this.camera.rotation.x = 45
