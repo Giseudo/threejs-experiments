@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "webpack-dev-server --mode development"
+    "start": "webpack-dev-server --mode development --host=0.0.0.0"
   },
   "dependencies": {
     "three.js": "^0.77.1"

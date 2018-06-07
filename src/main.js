@@ -1,4 +1,5 @@
 import 'three/examples/js/controls/OrbitControls'
+import 'three/examples/js/loaders/OBJLoader'
 import { waterVertex, waterFragment } from './shaders'
 import {
 	Scene,
@@ -6,89 +7,93 @@ import {
 	WebGLRenderer,
 	Mesh,
 	ShaderMaterial,
-	PlaneBufferGeometry,
 	MeshPhongMaterial,
-	SphereGeometry,
+	PlaneBufferGeometry,
 	AmbientLight,
 	DirectionalLight,
 	TextureLoader,
 	MirroredRepeatWrapping,
-	RepeatWrapping
+	RepeatWrapping,
+	Vector2,
+	PCFSoftShadowMap,
+	Fog
 } from 'three'
+
+const loader = new TextureLoader()
 
 const app = {
 	init() {
 		this.scene = new Scene()
+		this.scene.fog = new Fog(0x2e684c, 0, 60)
 		this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-		this.renderer = new WebGLRenderer({ antialias: 2 })
+		this.renderer = new WebGLRenderer({ antialias: 1 })
+		this.renderer.shadowMap.enabled = true
+		this.renderer.setClearColor(0xe29b81, 1);
 
-		// Resize renderer and append its dom to body
-		this.renderer.setSize(window.innerWidth, window.innerHeight)
-		document.body.appendChild(this.renderer.domElement)
-
-		// Resize renderer when browser is resized
-		window.addEventListener('resize', e => {
+		// Load island then render scene
+		this.loadModel()
+		.then(() => {
+			// Resize renderer and append its dom to body
 			this.renderer.setSize(window.innerWidth, window.innerHeight)
-			this.camera.aspect = window.innerWidth / window.innerHeight
-			this.camera.updateProjectionMatrix()
+			document.body.appendChild(this.renderer.domElement)
+
+			// Resize renderer when browser is resized
+			window.addEventListener('resize', e => {
+				this.renderer.setSize(window.innerWidth, window.innerHeight)
+				this.camera.aspect = window.innerWidth / window.innerHeight
+				this.camera.updateProjectionMatrix()
+			})
+
+			this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement)
+
+			// Setup scene objects
+			this.run()
+
+			// Setup game loop
+			var loop = () => {
+				requestAnimationFrame(loop)
+				this.update()
+				this.draw()
+			}
+
+			// Start game loop
+			loop()
 		})
-
-		this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement)
-
-		// Setup scene objects
-		this.run()
-
-		// Start game loop
-		var loop = () => {
-			requestAnimationFrame(loop)
-			this.update()
-			this.draw()
-		}
-
-		loop()
 	},
 
 	run() {
-		let geometry = new PlaneBufferGeometry(50, 50, 10, 10),
+		let geometry = new PlaneBufferGeometry(500, 500, 300, 50),
 			material = new ShaderMaterial({
 				uniforms: this.uniforms,
 				vertexShader: waterVertex,
-				fragmentShader: waterFragment
+				fragmentShader: waterFragment,
+				fog: true,
+				wireframe: false,
+				transparent: true
 			})
 
 		this.uniforms.texture.value.wrapS = MirroredRepeatWrapping
 		this.uniforms.texture.value.wrapT = MirroredRepeatWrapping
 		this.uniforms.ripples.value.wrapS = RepeatWrapping
 		this.uniforms.ripples.value.wrapT = RepeatWrapping
-		this.uniforms.bump.value.repeat.set(500, 500)
 
-		var ambientLight = new AmbientLight(0xffffff, .1)
-		var geometrySphere = new SphereGeometry(8, 9, 9)
-		var materialSphere = new MeshPhongMaterial({
-			color: 0xffffff,
-			normalMap: this.uniforms.bump.value,
-			specularMap: this.uniforms.texture.value,
-			specular: 0xffff00,
-			shininess: 20
-		})
-
-		this.light = new DirectionalLight(0xffffff, .8)
+		// Directional light
+		this.light = new DirectionalLight(0xfff435, 1.2)
+		this.light.position.z = 15
 		this.light.position.x = 50
-		this.light.position.z = 100
-
-		this.sphere = new Mesh(geometrySphere, materialSphere)
-		this.sphere.position.z = -4
+		this.light.castShadow = true
+		this.light.shadow.mapSize.width = 1024;
+		this.light.shadow.mapSize.height = 1024;
 		this.scene.add(this.light)
-		this.scene.add(this.sphere)
-		this.scene.add(ambientLight)
 
-		// Change background
-		this.renderer.setClearColor(0xf9f7ec, 1);
+		// Ambient light
+		this.ambientLight = new AmbientLight(0x412563, 1.2)
+		this.scene.add(this.ambientLight)
 
 		// Camera
-		this.camera.position.z = 5
-		this.camera.rotation.x = 45
-		this.camera.position.y = -20
+		this.camera.position.z = 2
+		this.camera.position.y = -10
+		this.camera.rotation.x = 1.5
 		
 		// Sphere
 		this.water = new Mesh(geometry, material)
@@ -100,15 +105,15 @@ const app = {
 	uniforms: {
 		texture: {
 			type: 't',
-			value: new TextureLoader().load('./textures/ToonWater01.png')
+			value: loader.load('./textures/ToonWater01.png')
 		},
 		bump: {
 			type: 't',
-			value: new TextureLoader().load('./textures/PaperNormal01.jpg')
+			value: loader.load('./textures/PaperNormal01.jpg')
 		},
 		ripples: {
 			type: 't',
-			value: new TextureLoader().load('./textures/RipplesNormal01.jpg')
+			value: loader.load('./textures/RipplesNormal01.jpg')
 		},
 		delta: {
 			type: 'f',
@@ -116,11 +121,54 @@ const app = {
 		},
 		speed: {
 			type: 'f',
-			value: 7.0
+			value: 3.0
+		},
+		fogColor: {
+			type: "c"
+		},
+		fogNear: {
+			type: "f"
+		},
+		fogFar: {
+			type: "f"
 		}
 	},
 
+	loadModel() {
+		var objLoader = new THREE.OBJLoader();
+
+		return new Promise((resolve, reject) => {
+			objLoader.load('./models/LittleIsland.obj',
+				object => {
+					object.traverse(node => {
+						let diffuse = loader.load('./textures/IslandDiffuse.png'),
+							normal = loader.load('./textures/IslandNormal.png'),
+							occlusion = loader.load('./textures/IslandAmbientOcclusion.png')
+						
+						if (node instanceof Mesh) {
+							node.material = new MeshPhongMaterial({
+								map: diffuse,
+								aoMap: occlusion,
+								aoMapIntensity: .2,
+								shininess: 100
+							})
+							node.castShadow = true
+							node.receiveShadow = true
+						}
+					})
+
+					object.position.z = -.4
+					this.island = object
+					this.scene.add(object);
+
+					return resolve(object)
+				}
+			)
+		})
+	},
+
 	update() {
+		this.island.rotation.z += 0.0025
 		this.uniforms.delta.value += 0.001
 	},
 
