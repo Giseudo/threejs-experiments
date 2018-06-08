@@ -6,7 +6,7 @@ void main() {
 	vUv = uv;
 	vec3 vertex = position;
 
-	vertex.z += sin(delta * speed * 5.0 + position.x * position.y) * .3;
+	vertex.z += sin(delta * speed * 2.0 + position.x * position.y) * .5;
 
 	gl_Position = projectionMatrix * modelViewMatrix * vec4(vertex, 1.0);
 }

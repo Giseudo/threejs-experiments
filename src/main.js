@@ -62,7 +62,7 @@ const app = {
 	},
 
 	run() {
-		let geometry = new PlaneBufferGeometry(500, 500, 300, 50),
+		let geometry = new PlaneBufferGeometry(250, 250, 50, 50),
 			material = new ShaderMaterial({
 				uniforms: this.uniforms,
 				vertexShader: waterVertex,
@@ -142,7 +142,6 @@ const app = {
 				object => {
 					object.traverse(node => {
 						let diffuse = loader.load('./textures/IslandDiffuse.png'),
-							normal = loader.load('./textures/IslandNormal.png'),
 							occlusion = loader.load('./textures/IslandAmbientOcclusion.png')
 						
 						if (node instanceof Mesh) {
@@ -157,7 +156,7 @@ const app = {
 						}
 					})
 
-					object.position.z = -.4
+					object.position.z = .8
 					this.island = object
 					this.scene.add(object);
 
