@@ -22,22 +22,22 @@ void main() {
 	)) * .3;
 
 	vec4 diffuse = texture2D(texture, vec2(
-		(vUv.x * 25.0 + sin(speed * delta) / 5.0) + distort.g,
-		(vUv.y * 25.0 + sin(speed * delta) / 5.0) + distort.r
+		(vUv.x * 10.0 + sin(speed * delta) / 5.0) + distort.g,
+		(vUv.y * 10.0 + sin(speed * delta) / 5.0) + distort.r
 	));
 
 	// Light
 	vec4 addedLights = vec4(0.1, 0.1, 0.1, 1.0);
 
 	for(int l = 0; l < NUM_POINT_LIGHTS; l++) {
-      vec3 lightDirection = normalize(vPos
-                            - pointLights[l].position);
-      addedLights.rgb += clamp(dot(-lightDirection,
-                               vNormal), 0.0, 1.0)
-                         * pointLights[l].color
-                         * 1.0;
+			vec3 dist = vPos - pointLights[l].position;
+			vec3 att = 1.0 / (1.0 + 0.1 * dist + 0.01 * dist * dist);
+      vec3 lightDirection = normalize(dist * .1);
+
+      addedLights.rgb += clamp(dot(-lightDirection, vNormal), 0.0, 1.0)
+				* pointLights[l].color * .8;
 	}
 
 	gl_FragColor = diffuse * addedLights;
-	gl_FragColor.a = .9;
+	gl_FragColor.a = .8;
 }
