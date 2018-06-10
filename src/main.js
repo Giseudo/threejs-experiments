@@ -1,4 +1,5 @@
-import Exercise from './exercises/island'
+import Exercise from './exercises/lighting'
+
 import {
 	Scene,
 	PerspectiveCamera,
@@ -9,6 +10,8 @@ const app = {
 	delta: 0,
 
 	init() {
+		let aspect = window.innerWidth / window.innerHeight
+
 		// Create scene
 		this.scene = new Scene()
 
@@ -16,12 +19,7 @@ const app = {
 		this.renderer = new WebGLRenderer({ antialias: 1 })
 
 		// Create & setup camera
-		this.camera = new PerspectiveCamera(
-			75,
-			window.innerWidth / window.innerHeight,
-			0.1,
-			1000
-		)
+		this.camera = new PerspectiveCamera(75, aspect, 0.1, 1000)
 
 		// Initialize exercise
 		this.exercise = new Exercise(this.scene, this.renderer, this.camera)

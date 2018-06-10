@@ -1,9 +1,6 @@
 import 'three/examples/js/loaders/OBJLoader'
-import { waterVertex, waterFragment } from '../shaders'
+import { waterVertex, waterFragment, lightingFragment } from '../shaders'
 import {
-	Scene,
-	PerspectiveCamera,
-	WebGLRenderer,
 	Mesh,
 	ShaderMaterial,
 	MeshBasicMaterial,
@@ -20,7 +17,6 @@ import {
 	Color,
 	PCFSoftShadowMap,
 	SphereGeometry,
-	Fog,
 	Object3D
 } from 'three'
 
