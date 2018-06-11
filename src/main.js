@@ -1,4 +1,4 @@
-import Exercise from './exercises/lighting'
+import Exercise from './exercises/island'
 
 import {
 	Scene,
@@ -48,7 +48,7 @@ const app = {
 
 	update() {
 		this.exercise.update(this.delta)
-		this.delta += 0.001
+		this.delta = 1 / 60
 	},
 
 	draw() {

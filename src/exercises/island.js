@@ -23,6 +23,7 @@ import {
 const loader = new TextureLoader()
 
 module.exports = function(scene, renderer, camera) {
+	this.delta = 1 / 60
 	this.uniforms = {
 		texture: {
 			type: 't',
@@ -36,13 +37,17 @@ module.exports = function(scene, renderer, camera) {
 			type: 't',
 			value: loader.load('./textures/RipplesNormal01.jpg')
 		},
+		specularTex: {
+			type: 't',
+			value: loader.load('./textures/WaterSpecular01.jpg')
+		},
 		delta: {
 			type: 'f',
 			value: 0.0
 		},
 		speed: {
 			type: 'f',
-			value: 3.0
+			value: .2
 		},
 		fogColor: {
 			type: "c"
@@ -62,22 +67,24 @@ module.exports = function(scene, renderer, camera) {
 		this.uniforms.texture.value.wrapT = MirroredRepeatWrapping
 		this.uniforms.ripples.value.wrapS = RepeatWrapping
 		this.uniforms.ripples.value.wrapT = RepeatWrapping
+		this.uniforms.specularTex.value.wrapS = RepeatWrapping
+		this.uniforms.specularTex.value.wrapT = RepeatWrapping
 
 		// Directional light
-		this.light = new PointLight(0xf99543, 1.5, 100)
-		this.light.position.z = 25
-		this.light.position.y = -30
+		this.light = new PointLight(0xf99543, 1.7, 100)
+		this.light.position.z = 10
+		this.light.position.y = -60
 		scene.add(this.light)
 
 		// Ambient light
-		this.ambientLight = new AmbientLight(0x412563, 1.4)
+		this.ambientLight = new AmbientLight(0x9e42f4, .5)
 		scene.add(this.ambientLight)
 
 		// Camera
 		this.focus = new Object3D()
 		this.focus.add(camera)
 		this.focus.position.set(0, 0, 1)
-		this.focus.rotation.z = 2.0
+		this.focus.rotation.z = 2.3
 		camera.position.set(0, -7, 2)
 		camera.lookAt(this.focus.position)
 		
@@ -88,10 +95,10 @@ module.exports = function(scene, renderer, camera) {
 			shininess: 100,
 			fog: false
 		}))
-		this.sky.position.z = 20
-		this.sky.rotation.x = -.2
+		this.sky.position.z = 10
+		this.sky.rotation.x = 0.0
 
-		let geometry = new PlaneBufferGeometry(80, 80, 15, 15),
+		let geometry = new PlaneBufferGeometry(140, 140, 30, 30),
 			material = new ShaderMaterial({
 				uniforms: this.uniforms,
 				vertexShader: waterVertex,
@@ -128,10 +135,10 @@ module.exports = function(scene, renderer, camera) {
 				lastPosition = { x: event.clientX, y: event.clientY }
 
 				// Update horizontal rotation
-				this.focus.rotateOnWorldAxis(new Vector3(0, 0, 1), delta.x * 0.01 * this.uniforms.delta.value)
+				this.focus.rotateOnWorldAxis(new Vector3(0, 0, 1), delta.x * 0.15 * this.delta)
 
 				// Update vertical rotation
-				this.focus.rotateOnAxis(new Vector3(1, 0, 0), delta.y * 0.01 * this.uniforms.delta.value)
+				this.focus.rotateOnAxis(new Vector3(1, 0, 0), delta.y * 0.15 * this.delta)
 			}
 
 		// Enable controls when mouse down
@@ -149,8 +156,8 @@ module.exports = function(scene, renderer, camera) {
 
 		// Zoom in/out when scroll
 		document.addEventListener('mousewheel', e => {
-			if (e.deltaX != 0) {
-				let updatedPosition = camera.position.y + e.deltaX * .5 * this.uniforms.delta.value
+			if (e.deltaY != 0) {
+				let updatedPosition = camera.position.y + e.deltaY * .5 * this.delta
 
 				if (updatedPosition <= -5 && updatedPosition >= -10)
 					camera.position.y = updatedPosition
@@ -201,7 +208,7 @@ module.exports = function(scene, renderer, camera) {
 
 	return {
 		update: dt => {
-			this.uniforms.delta.value = dt
+			this.uniforms.delta.value += dt
 		},
 
 		draw: () => {
