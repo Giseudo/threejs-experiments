@@ -35,11 +35,11 @@ module.exports = function(scene, renderer, camera) {
 		},
 		ripples: {
 			type: 't',
-			value: loader.load('./textures/RipplesNormal01.jpg')
+			value: loader.load('./textures/RipplesNormal02.jpg')
 		},
 		specularTex: {
 			type: 't',
-			value: loader.load('./textures/WaterSpecular01.jpg')
+			value: loader.load('./textures/WaterSpecular01.png')
 		},
 		delta: {
 			type: 'f',
@@ -67,17 +67,17 @@ module.exports = function(scene, renderer, camera) {
 		this.uniforms.texture.value.wrapT = MirroredRepeatWrapping
 		this.uniforms.ripples.value.wrapS = RepeatWrapping
 		this.uniforms.ripples.value.wrapT = RepeatWrapping
-		this.uniforms.specularTex.value.wrapS = RepeatWrapping
-		this.uniforms.specularTex.value.wrapT = RepeatWrapping
+		this.uniforms.specularTex.value.wrapS = MirroredRepeatWrapping
+		this.uniforms.specularTex.value.wrapT = MirroredRepeatWrapping
 
-		// Directional light
-		this.light = new PointLight(0xf99543, 1.7, 100)
+		// Sun light
+		this.light = new PointLight(0xf99143, 2.0, 100)
 		this.light.position.z = 10
 		this.light.position.y = -60
 		scene.add(this.light)
 
 		// Ambient light
-		this.ambientLight = new AmbientLight(0x9e42f4, .5)
+		this.ambientLight = new AmbientLight(0x9e42f4, .6)
 		scene.add(this.ambientLight)
 
 		// Camera
@@ -92,8 +92,9 @@ module.exports = function(scene, renderer, camera) {
 		this.sky = new Mesh(new SphereGeometry(70, 16, 16), new MeshPhongMaterial({
 			map: loader.load('./textures/Skybox.jpg'),
 			side: THREE.BackSide,
-			shininess: 100,
-			fog: false
+			shininess: 200,
+			fog: false,
+			wireframe: false
 		}))
 		this.sky.position.z = 10
 		this.sky.rotation.x = 0.0
@@ -195,6 +196,19 @@ module.exports = function(scene, renderer, camera) {
 		})
 	}
 
+	this.loadCloud = () => {
+		var objLoader = new THREE.OBJLoader();
+
+		return new Promise((resolve, reject) => {
+			objLoader.load('./models/Cloud.obj',
+				object => {
+					return resolve(object)
+				}
+			)
+		})
+	}
+
+
 	this.process()
 
 	// Load island model
@@ -204,11 +218,47 @@ module.exports = function(scene, renderer, camera) {
 			scene.add(island);
 
 			this.init()
+
+			this.loadCloud()
+				.then(cloud => {
+					let clouds = new Object3D(),
+						max = 30,
+						radius = 40,
+						angle = 0,
+						step = (2 * Math.PI) / max
+
+					for (let i = 1; i < max; i++) {
+						let clone = cloud.clone(),
+							scale = Math.random() * (6 - 1) + 1
+
+						clone.position.set(
+							radius * Math.sin(angle),
+							radius * Math.cos(angle),
+							Math.random() * (40 - 5) + 5
+						)
+
+						clone.lookAt(new Vector3(this.focus.position.x, this.focus.position.y, this.focus.position.z))
+						clone.scale.set(scale, scale, scale)
+						clone.rotation.x = 0
+						clone.rotation.y = 0
+
+						// Add to clouds parent and scene
+						clouds.add(clone)
+
+						angle += step
+					}
+
+					this.clouds = clouds
+					scene.add(this.clouds)
+				})
 		})
 
 	return {
 		update: dt => {
 			this.uniforms.delta.value += dt
+
+			if (this.clouds)
+				this.clouds.rotation.z += dt * .01
 		},
 
 		draw: () => {

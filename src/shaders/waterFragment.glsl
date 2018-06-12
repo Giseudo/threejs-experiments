@@ -18,8 +18,8 @@ uniform PointLight pointLights[ NUM_POINT_LIGHTS ];
 void main() {
 	// Distortion
 	vec4 distort = texture2D(ripples, vec2(
-		(vUv.x * 6.0 + (speed * .05) * delta),
-		(vUv.y * 6.0 + (speed * .05) * delta)
+		(vUv.x + (speed * .05) * delta),
+		(vUv.y + (speed * .05) * delta)
 	)) * .3;
 
 	vec4 color = texture2D(texture, vec2(
@@ -28,8 +28,8 @@ void main() {
 	));
 
 	vec4 specularDistort = texture2D(specularTex, vec2(
-		(vUv.x * 15.0 + sin(speed * delta) / 5.0) + distort.g,
-		(vUv.y * 15.0 + sin(speed * delta) / 5.0) + distort.r
+		(vUv.x * 20.0 + sin(speed * delta) / 5.0) + distort.g,
+		(vUv.y * 20.0 + sin(speed * delta) / 5.0) + distort.r
 	));
 
 	// Ambient light
@@ -50,7 +50,7 @@ void main() {
 		vec3 reflectDir = reflect(-lightDir, norm);
 		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 8.0);
 
-		diffuse = 0.6 * diff * pointLights[l].color;
+		diffuse = 0.3 * diff * pointLights[l].color;
 
 		specular = 1.5 * spec * pointLights[l].color * specularDistort.rgb;
 	}
