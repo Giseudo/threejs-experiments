@@ -54,7 +54,9 @@ module.exports = {
       chunksSortMode: 'dependency'
 		}),
 		new webpack.ProvidePlugin({
-			THREE: 'three'
+			THREE: 'three',
+			Zlib: ['three/examples/js/libs/inflate.min', 'Zlib'],
+			'window.Zlib': ['three/examples/js/libs/inflate.min', 'Zlib']
 		}),
 		new webpack.DefinePlugin({
 			'process.env': {

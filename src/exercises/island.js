@@ -1,4 +1,5 @@
 import 'three/examples/js/loaders/OBJLoader'
+import 'three/examples/js/loaders/FBXLoader'
 import { waterVertex, waterFragment, lightingFragment } from '../shaders'
 import {
 	Mesh,
@@ -208,6 +209,16 @@ module.exports = function(scene, renderer, camera) {
 		})
 	}
 
+	this.loadSeagull = () => {
+		var fbxLoader = new THREE.FBXLoader();
+
+		return new Promise((resolve, reject) => {
+			fbxLoader.load('./models/Seagull.fbx',
+			object => {
+				return resolve(object)
+			})
+		})
+	}
 
 	this.process()
 
@@ -251,11 +262,43 @@ module.exports = function(scene, renderer, camera) {
 					this.clouds = clouds
 					scene.add(this.clouds)
 				})
+
+			this.loadSeagull()
+				.then(seagull => {
+					let seagulls = new Object3D()
+
+					seagull.position.z = 3
+					seagull.mixer = new THREE.AnimationMixer(seagull);
+
+					var clip = THREE.AnimationClip.findByName(seagull.animations, 'Seagull|SeagullAction')
+					var action = seagull.mixer.clipAction(clip)
+
+					action.play()
+					// scene.add(seagull)
+
+					this.seagull = seagull
+
+					/*object.traverse( function ( child ) {
+
+						if ( child.isMesh ) {
+
+							child.castShadow = true;
+							child.receiveShadow = true;
+
+						}
+
+					} );
+
+					scene.add( object );*/
+				})
 		})
 
 	return {
 		update: dt => {
 			this.uniforms.delta.value += dt
+
+			if (this.seagull)
+				this.seagull.mixer.update(dt * 30)
 
 			if (this.clouds)
 				this.clouds.rotation.z += dt * .01
