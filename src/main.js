@@ -35,6 +35,8 @@ const app = {
 			this.camera.updateProjectionMatrix()
 		})
 
+		this.clock = new THREE.Clock()
+
 		// Setup game loop
 		var loop = () => {
 			requestAnimationFrame(loop)
@@ -47,8 +49,7 @@ const app = {
 	},
 
 	update() {
-		this.exercise.update(this.delta)
-		this.delta = 1 / 60
+		this.exercise.update(this.clock.getDelta())
 	},
 
 	draw() {

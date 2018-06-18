@@ -22,6 +22,56 @@ import {
 } from 'three'
 
 const loader = new TextureLoader()
+const cloneFbx = (fbx) => {
+	const clone = fbx.clone(true)
+	clone.animations = fbx.animations
+	clone.skeleton = new THREE.Skeleton()
+
+	const skinnedMeshes = {}
+
+	fbx.traverse(node => {
+		if (node.isSkinnedMesh) {
+			skinnedMeshes[node.name] = node
+		}
+	})
+
+	const cloneBones = {}
+	const cloneSkinnedMeshes = {}
+
+	clone.traverse(node => {
+		if (node.isBone) {
+			cloneBones[node.name] = node
+		}
+
+		if (node.isSkinnedMesh) {
+			cloneSkinnedMeshes[node.name] = node
+		}
+	})
+
+	for (let name in skinnedMeshes) {
+		const skinnedMesh = skinnedMeshes[name]
+		const skeleton = skinnedMesh.skeleton
+		const cloneSkinnedMesh = cloneSkinnedMeshes[name]
+
+		const orderedCloneBones = []
+
+		for (let i=0; i<skeleton.bones.length; i++) {
+			const cloneBone = cloneBones[skeleton.bones[i].name]
+			orderedCloneBones.push(cloneBone)
+		}
+
+		cloneSkinnedMesh.bind(
+			new THREE.Skeleton(orderedCloneBones, skeleton.boneInverses),
+			cloneSkinnedMesh.matrixWorld)
+
+		// For animation to work correctly:
+		clone.skeleton.bones.push(cloneSkinnedMesh)
+		clone.skeleton.bones.push(...orderedCloneBones)
+	}
+
+	return clone
+}
+
 
 module.exports = function(scene, renderer, camera) {
 	this.delta = 1 / 60
@@ -202,10 +252,9 @@ module.exports = function(scene, renderer, camera) {
 
 		return new Promise((resolve, reject) => {
 			objLoader.load('./models/Cloud.obj',
-				object => {
-					return resolve(object)
-				}
-			)
+			object => {
+				return resolve(object)
+			})
 		})
 	}
 
@@ -264,32 +313,40 @@ module.exports = function(scene, renderer, camera) {
 				})
 
 			this.loadSeagull()
-				.then(seagull => {
-					let seagulls = new Object3D()
+				.then(object => {
+					let seagulls = new Object3D(),
+						max = 3,
+						height = 1,
+						distance = 2
 
-					seagull.position.z = 3
-					seagull.mixer = new THREE.AnimationMixer(seagull);
+						// Change material color
+						object.traverse(node => {
+							if (node.name == 'SeagullMesh')
+								node.material.color = new THREE.Color(0x000000)
+						})
 
-					var clip = THREE.AnimationClip.findByName(seagull.animations, 'Seagull|SeagullAction')
-					var action = seagull.mixer.clipAction(clip)
+					for (let i = 0; i < max; i++) {
+						let seagull = cloneFbx(object),
+							clip = THREE.AnimationClip.findByName(seagull.animations, 'Seagull|Idle')
 
-					action.play()
-					// scene.add(seagull)
+						seagull.mixer = new THREE.AnimationMixer(seagull)
 
-					this.seagull = seagull
+						// Set position
+						seagull.position.x = i * distance
+						seagull.position.z = i % 2 == 0 ? height : height * -1
 
-					/*object.traverse( function ( child ) {
+						// Play animation
+						let action = seagull.mixer.clipAction(clip)
+						action.time = i * 0.1
+						action.play()
 
-						if ( child.isMesh ) {
+						// Add to parent
+						seagulls.add(seagull)
+					}
 
-							child.castShadow = true;
-							child.receiveShadow = true;
-
-						}
-
-					} );
-
-					scene.add( object );*/
+					this.seagulls = seagulls
+					this.seagulls.position.set(-5, -40, 10)
+					scene.add(this.seagulls)
 				})
 		})
 
@@ -297,8 +354,10 @@ module.exports = function(scene, renderer, camera) {
 		update: dt => {
 			this.uniforms.delta.value += dt
 
-			if (this.seagull)
-				this.seagull.mixer.update(dt * 30)
+			if (this.seagulls)
+				this.seagulls.children.forEach(seagull => {
+					seagull.mixer.update(dt * 0.3)
+				})
 
 			if (this.clouds)
 				this.clouds.rotation.z += dt * .01
