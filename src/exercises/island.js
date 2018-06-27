@@ -141,8 +141,8 @@ module.exports = function(scene, renderer, camera) {
 		camera.lookAt(this.focus.position)
 
 		// Fireflies
-		this.fireflies = new Fireflies(.5, 60, 1, 90, 3, 20)
-		this.fireflies.object.position.set(-45, -10, 1)
+		this.fireflies = new Fireflies(.2, 100, .3, 10, 3, 5)
+		this.fireflies.object.position.set(-3, -3, 1)
 		scene.add(this.fireflies.object)
 	
 		// Sky
