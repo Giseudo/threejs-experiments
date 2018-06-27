@@ -56,5 +56,5 @@ void main() {
 	}
 
 	gl_FragColor = vec4(color.rgb * (ambient + diffuse + specular), 1.0);
-	gl_FragColor.a = .7;
+	gl_FragColor.a = .8;
 }

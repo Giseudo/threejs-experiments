@@ -20,6 +20,7 @@ import {
 	SphereGeometry,
 	Object3D
 } from 'three'
+import Fireflies from '../entities/fireflies'
 
 const loader = new TextureLoader()
 const cloneFbx = (fbx) => {
@@ -138,7 +139,12 @@ module.exports = function(scene, renderer, camera) {
 		this.focus.rotation.z = 2.3
 		camera.position.set(0, -7, 2)
 		camera.lookAt(this.focus.position)
-		
+
+		// Fireflies
+		this.fireflies = new Fireflies(.5, 60, 1, 90, 3, 20)
+		this.fireflies.object.position.set(-45, -10, 1)
+		scene.add(this.fireflies.object)
+	
 		// Sky
 		this.sky = new Mesh(new SphereGeometry(70, 16, 16), new MeshPhongMaterial({
 			map: loader.load('./textures/Skybox.jpg'),
@@ -356,15 +362,18 @@ module.exports = function(scene, renderer, camera) {
 
 			if (this.seagulls)
 				this.seagulls.children.forEach(seagull => {
-					seagull.mixer.update(dt * 0.3)
+					seagull.mixer.update(dt * 0.8)
 				})
 
 			if (this.clouds)
 				this.clouds.rotation.z += dt * .01
+
+			if (this.fireflies)
+				this.fireflies.update(dt)
 		},
 
 		draw: () => {
-		
+			// this.fireflies.draw()
 		}
 	}
 }
