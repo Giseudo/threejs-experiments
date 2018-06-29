@@ -10,6 +10,7 @@ import {
 import { lightingVertex, lightingFragment } from '../shaders'
 
 const loader = new TextureLoader()
+const black = new THREE.Color(0x000000)
 
 export default class Fireflies {
 	constructor(size = 3, count = 30, speed = 2, width = 100, height = 50, distance = 50) {
@@ -19,7 +20,8 @@ export default class Fireflies {
 				map: loader.load('./textures/FireflyParticle01.png'),
 				blending: AdditiveBlending,
 				transparent: true,
-				wireframe: true
+				wireframe: true,
+				vertexColors: THREE.VertexColors
 			})
 
 		this.particles = new Geometry()
@@ -38,8 +40,10 @@ export default class Fireflies {
 				Math.random() * (1 - -1) + -1
 			))
 			particle.start = new Vector3(pX, pY, pZ)
-			particle.speed = Math.random() * (speed - speed * .2) + speed * .2
+			particle.height = Math.random() * (3 - 1) + 1
+			particle.speed = Math.random() * (speed - speed * .1) + speed * .1
 
+			this.particles.colors.push(new THREE.Color(0xFFFFFF))
 			this.particles.vertices.push(particle)
 		}
 
@@ -54,12 +58,14 @@ export default class Fireflies {
 	update(dt) {
 		this.timer += dt
 
-		this.particles.vertices.forEach(particle => {
+		this.particles.vertices.forEach((particle, index) => {
 			particle.add(new Vector3(
-				particle.direction.x * particle.speed * dt,
-				particle.direction.y * particle.speed * dt,
-				10 * Math.sin(this.timer * Math.PI) * particle.speed * .2 * dt,
-			));
+				(particle.direction.x + Math.sin(this.timer * particle.speed * Math.PI)) * particle.speed * dt,
+				(particle.direction.y + Math.sin(this.timer * particle.speed * Math.PI)) * particle.speed * dt,
+				(particle.height * Math.cos(this.timer * particle.speed * Math.PI)) * particle.speed * dt
+			))
+
+			this.particles.colors[index].lerp(black, this.timer)
 
 			if (particle.distanceTo(particle.start) > this.distance)
 				particle.set(
