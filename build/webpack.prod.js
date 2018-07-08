@@ -31,14 +31,9 @@ module.exports = merge(baseWebpackConfig, {
 		}),
 
 		new CopyWebpackPlugin([
-			{
-				from: 'static/textures',
-				to: 'textures'
-			},
-			{
-				from: 'static/models',
-				to: 'models'
-			},
+			{ from: 'static/images', to: 'images' },
+			{ from: 'static/textures', to: 'textures' },
+			{ from: 'static/models', to: 'models' }
 		], {})
 	]
 })
