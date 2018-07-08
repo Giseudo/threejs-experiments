@@ -7,11 +7,6 @@ module.exports = {
 	entry: {
 		app: './src/main.js'
 	},
-	output: {
-		path: path.join(__dirname, '..', 'docs'),
-		publicPath: '/',
-		filename: 'app.[hash:7].js'
-	},
 	resolve: {
 		extensions: ['.js', '.glsl']
 	},
@@ -48,6 +43,7 @@ module.exports = {
       },
       chunksSortMode: 'dependency'
 		}),
+
 		new webpack.ProvidePlugin({
 			THREE: 'three',
 			Zlib: ['three/examples/js/libs/inflate.min', 'Zlib'],

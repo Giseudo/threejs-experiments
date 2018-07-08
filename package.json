@@ -1,4 +1,5 @@
 {
+	"name": "threejs-experiments",
   "scripts": {
     "start": "webpack-dev-server --config ./build/webpack.dev.js --mode development --host=0.0.0.0",
     "build": "webpack --config ./build/webpack.prod.js --progress"

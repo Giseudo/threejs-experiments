@@ -8,6 +8,11 @@ module.exports = merge(baseWebpackConfig, {
     publicPath: '/',
 		contentBase: './static'
   },
+	output: {
+		path: path.join(__dirname, '..', 'docs'),
+		publicPath: '/',
+		filename: 'app.[hash:7].js'
+	},
 	module: {
 		rules: [
 			//

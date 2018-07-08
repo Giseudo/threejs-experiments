@@ -7,6 +7,11 @@ var CleanWebpackPlugin = require('clean-webpack-plugin')
 
 module.exports = merge(baseWebpackConfig, {
 	devtool: 'cheap-source-map',
+	output: {
+		path: path.join(__dirname, '..', 'docs'),
+		publicPath: '/threejs-experiments/',
+		filename: 'app.[hash:7].js'
+	},
 	module: {
 		rules: [
 			//
